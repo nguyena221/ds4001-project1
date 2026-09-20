@@ -219,3 +219,6 @@ __marimo__/
 
 # Generated output
 out.csv
+
+# Exclude datasets
+*.csv
