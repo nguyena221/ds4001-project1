@@ -1,0 +1,103 @@
+{
+  "input_file": "embeddings_split (1).npz",
+  "input_sha256": "0d7d8f924937f3782ffe5ca6e72ac9b67c5f4c473c9962aa5687f9fa2cbd9197",
+  "selected_alpha": 0.5,
+  "validation_mae": 0.7418439716312056,
+  "test_mae": 0.7432624113475177,
+  "test_accuracy": 0.3971631205673759,
+  "goal_mae": 0.65,
+  "goal_met": false,
+  "baseline_rating": 3,
+  "validation_baseline_mae": 0.9177304964539007,
+  "test_baseline_mae": 0.9191489361702128,
+  "split_sizes": {
+    "train": 3289,
+    "validation": 705,
+    "test": 705
+  },
+  "validation_confusion_matrix": [
+    [
+      10,
+      41,
+      17,
+      4,
+      0
+    ],
+    [
+      4,
+      66,
+      83,
+      14,
+      0
+    ],
+    [
+      2,
+      56,
+      89,
+      57,
+      3
+    ],
+    [
+      2,
+      17,
+      61,
+      99,
+      3
+    ],
+    [
+      1,
+      1,
+      20,
+      47,
+      8
+    ]
+  ],
+  "test_confusion_matrix": [
+    [
+      10,
+      42,
+      21,
+      0,
+      0
+    ],
+    [
+      3,
+      67,
+      63,
+      32,
+      2
+    ],
+    [
+      4,
+      41,
+      98,
+      64,
+      0
+    ],
+    [
+      2,
+      13,
+      63,
+      97,
+      6
+    ],
+    [
+      0,
+      2,
+      17,
+      50,
+      8
+    ]
+  ],
+  "matrix_convention": "Rows actual, columns predicted; ratings 1 through 5",
+  "refit_on_validation": false,
+  "evaluation_caveat": "Original model test MAE 0.7645 was inspected before later validation-guided experiments; this is not a wholly untouched confirmatory test.",
+  "versions": {
+    "numpy": "2.5.3",
+    "scikit-learn": "1.9.1",
+    "mord": "0.7",
+    "scipy": "1.18.1",
+    "matplotlib": "3.11.2"
+  },
+  "python_version": "3.14.7"
+}

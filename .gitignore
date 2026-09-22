@@ -222,3 +222,4 @@ out.csv
 
 # Exclude datasets
 *.csv
+*.npz
