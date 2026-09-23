@@ -226,3 +226,6 @@ out.csv
 
 # allow only the aggregate alpha scores, not review datasets
 !output/alpha_validation.csv
+
+# local copies of imported working files; not part of the final pipeline
+.local_backups/

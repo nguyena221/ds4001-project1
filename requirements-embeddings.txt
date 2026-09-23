@@ -1,0 +1,5 @@
+# install these only when regenerating embeddings; the modeling dependencies remain separate.
+numpy
+pandas
+scikit-learn
+sentence-transformers
