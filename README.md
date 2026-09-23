@@ -6,7 +6,7 @@ The CourseForum CSV is excluded from GitHub.
 Authorized project members should obtain it from our restricted
 shared folder and place it in this directory before running the scripts.
 
-## Annie's selected model
+## Selected model
 
 The retained modeling implementation is `scripts/difficulty_model.py`: cleaned, non-chunked all-MiniLM-L6-v2 embeddings followed by `mord.LogisticIT`. Each review has 384 embedding features; training, validation, and test contain 3,289, 705, and 705 reviews. The selected alpha is 0.3.
 
@@ -15,7 +15,7 @@ The retained modeling implementation is `scripts/difficulty_model.py`: cleaned, 
 | Mean Absolute Error (MAE) | 0.7433 | 0.7461 |
 | Exact-match accuracy | 39.6% | 39.0% |
 
-The test MAE goal of 0.65 was not met. Read `output/annie_results/Annie_results.md` for interpretation and evaluation limitations.
+The test MAE goal of 0.65 was not met. Read `output/model_results.md` for interpretation and evaluation limitations.
 
 ### Run
 
@@ -28,6 +28,6 @@ python -m pip install -r requirements-model.txt
 python scripts/difficulty_model.py
 ```
 
-The script compares nine alpha values on validation MAE, then evaluates the selected training-set model on test data without refitting on validation. Results, alpha scores, and both confusion matrices are saved in `output/annie_results/`. Re-running overwrites those generated results. Comments explain each step in beginner-friendly language.
+The script compares nine alpha values on validation MAE, then evaluates the selected training-set model on test data without refitting on validation. Results, alpha scores, and both confusion matrices are saved in `output/`. Re-running overwrites those generated results. Comments explain each step in beginner-friendly language.
 
 Private CSV and NPZ datasets are excluded from new Git commits; obtain inputs through the restricted team sharing process. The existing scraper and other teammates' work are retained. No additional scraping is needed for this model.

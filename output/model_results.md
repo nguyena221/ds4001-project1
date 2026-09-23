@@ -1,4 +1,4 @@
-﻿# Annie Nguyen: selected model and results
+# Selected model and results
 
 ## Final retained approach
 

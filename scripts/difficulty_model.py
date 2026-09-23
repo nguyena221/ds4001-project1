@@ -22,7 +22,7 @@ from sklearn.metrics import mean_absolute_error, confusion_matrix, ConfusionMatr
 # the input is cleaned, non-chunked review embeddings exported from colab; minilm does not run here.
 root = Path(__file__).resolve().parents[1]
 input_path = root / "data/embeddings_split.npz"
-output_dir = root / "output/annie_results"
+output_dir = root / "output"
 output_dir.mkdir(parents=True, exist_ok=True)
 
 # open the saved bundle of arrays; the with block closes the file after loading them.
