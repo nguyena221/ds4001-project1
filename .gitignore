@@ -223,3 +223,6 @@ out.csv
 # Exclude datasets
 *.csv
 *.npz
+
+# allow only the aggregate alpha scores, not review datasets
+!output/annie_results/alpha_validation.csv

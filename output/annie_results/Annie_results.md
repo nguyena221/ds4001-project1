@@ -1,59 +1,39 @@
-# Annie Nguyen: Model Architecture and Tuning
+﻿# Annie Nguyen: selected model and results
 
-## Report-ready results
+## Final retained approach
 
-We trained an ordinal logistic regression model (`mord.LogisticIT`) using 384-dimensional all-MiniLM-L6-v2 review embeddings. The stratified training, validation, and test sets contained 3,289, 705, and 705 reviews, respectively. We compared alpha values of 0.03, 0.05, 0.1, 0.2, 0.3, 0.5, 1.0, 2.0, and 3.0 using validation Mean Absolute Error (MAE). Alpha 0.5 achieved the lowest validation MAE, 0.7418. Without refitting on validation data, the selected model achieved a test MAE of 0.7433 and exact-match accuracy of 39.7% (280 of 705 reviews). A constant prediction of 3, the training-set median, had test MAE 0.9191. The model therefore improved on this baseline but did not meet the target MAE of 0.65 or lower.
+The retained model uses cleaned, non-chunked all-MiniLM-L6-v2 review embeddings and `mord.LogisticIT`. The text-cleaning correction removes leftover January-term headers and displayed average ratings before embeddings are generated. No chunk averaging or sample weighting is used. The script consumes the existing stratified 70/15/15 split: 3,289 training reviews, 705 validation reviews, and 705 test reviews, with 384 features per review.
 
-The test confusion matrix showed predictions concentrated in ratings 2–4. Only 10 of 73 reviews rated 1 and 8 of 77 reviews rated 5 were predicted correctly. Of the reviews rated 1, 42 were predicted as 2; of those rated 5, 50 were predicted as 4. The model learned useful relationships between review language and difficulty but tended to move extreme ratings toward the middle of the scale.
+## Results for the report
 
-## Evaluation limitation — include with the results
+We compared alpha values of 0.03, 0.05, 0.1, 0.2, 0.3, 0.5, 1.0, 2.0, and 3.0 using validation Mean Absolute Error (MAE). Alpha 0.3 achieved the lowest validation MAE, 0.7433. Without refitting on validation data, the selected model achieved a test MAE of 0.7461 and exact-match accuracy of 39.0% (275 of 705 reviews). Always predicting the training median rating of 3 had test MAE 0.9191. The model improved on that baseline but did not meet the target test MAE of 0.65 or lower.
 
-The original model's test MAE (0.7645) was inspected before subsequent validation-guided experiments. Later choices used validation MAE, but this test set is not a wholly untouched confirmatory evaluation. These results should be described as development-stage evaluation. A stronger future assessment would freeze the full pipeline and evaluate on genuinely unused data obtained through the project's permitted process. Repeatedly tuning against these test results or reshuffling already inspected data would not restore an independent final test.
+The test confusion matrix shows difficulty identifying extreme ratings. The model correctly predicted 11 of 73 reviews rated 1 and 9 of 77 reviews rated 5. Most reviews rated 1 were predicted as 2 (40 reviews), while most reviews rated 5 were predicted as 4 (51 reviews). The model predicts all five ratings, but its predictions concentrate in the middle categories.
 
-## Changes from the original plan
+## Methods and evaluation limitations
 
-- The original alpha grid was 0.01, 0.1, 1.0, and 10.0. A finer validation grid was subsequently used; this should be reflected in the methods section.
-- The cleaning expression was extended to remove January-term headers and scraped average ratings. Removing scraped metadata is necessary for the text-only research question regardless of its effect on MAE.
-- Token counting found 554 training reviews (16.8%) exceeded the embedding model's 256-token limit. The Colab experiment recursively split long reviews into pieces that fit the limit, embedded each piece, and took an unweighted mean of each review's piece embeddings. Short reviews remained intact. The existing split membership and label order were retained.
-- With corrected cleaning but no chunking, best validation MAE was 0.7433 at alpha 0.3. With chunking, it was 0.7418 at alpha 0.5. This difference represents only one total absolute-error point across 705 validation reviews, so it is not strong evidence that chunking meaningfully improves generalization.
-- MAE means **Mean Absolute Error**, not Mean Average Error.
+- The model family and 384-dimensional embeddings follow the project overview. The alpha grid was expanded beyond the original four values; describe that expansion in the methods.
+- The final selected input includes the January-header cleaning correction. The upstream notebook's other cleaning operations should be described as actually implemented; the local modeling script does not perform lowercase, HTML, or Markdown cleanup itself.
+- Other models and preprocessing variants were explored during development. Their scripts and outputs were removed from the current repository to leave one selected implementation, but this does not erase that experimental history.
+- Test performance was inspected during development, including for other versions. These scores are development-stage evaluation, not a wholly untouched confirmatory test. The model should not be selected or tuned further merely to lower this test score.
+- MAE means Mean Absolute Error. It measures average distance from the correct rating, not percentage accuracy. A test MAE of 0.7461 means predictions were off by about three quarters of a rating step on average.
+- The selected model is not fine-tuned MiniLM: MiniLM provides fixed numerical representations, and LogisticIT learns the prediction coefficients and rating boundaries.
 
-## Validation comparison for the current chunked input
+## Reproduction and files
 
-| Alpha | Validation MAE |
-|---|---:|
-| 0.03 | 0.7801 |
-| 0.05 | 0.7872 |
-| 0.1 | 0.7773 |
-| 0.2 | 0.7674 |
-| 0.3 | 0.7645 |
-| 0.5 | 0.7418 |
-| 1.0 | 0.7546 |
-| 2.0 | 0.7574 |
-| 3.0 | 0.7631 |
+Run `python scripts/difficulty_model.py` using the project's virtual environment. Tested package versions are listed in `requirements-model.txt`; the recorded Python version is 3.14.7.
 
-## Files and reproduction
+Private input: `data/embeddings_split.npz` (cleaned, non-chunked export). Its expected SHA-256 is `3d9bc9d492fc6d3397c63b82d63e4a714bbc51f10659a9fc5e60c4e3649b7030`. Obtain it through the restricted team sharing process. Each embedding row must match the rating in the same position. The raw review data and derived embeddings should remain private.
 
-- `scripts/difficulty_model.py`: training, validation selection, evaluation, and saving outputs. Paths are resolved relative to the project, so the launch directory does not matter.
-- Private input: `data/embeddings_split (1).npz`, the user-exported chunked embeddings. Its SHA-256 hash and the installed package versions are recorded in `metrics.json` to identify the exact run.
-- `alpha_validation.csv`: full-precision validation scores.
-- `metrics.json`: selected settings, metrics, baseline results, both confusion matrices, input hash, software versions, and evaluation caveat.
-- `validation_confusion_matrix.png` and `test_confusion_matrix.png`: rows are actual ratings; columns are predictions.
+Outputs in this folder:
 
-Run from the project folder in PowerShell:
+- `alpha_validation.csv`: each alpha and its full-precision validation MAE.
+- `metrics.json`: metrics, accuracy, baseline, input fingerprint, package versions, and confusion-matrix counts.
+- `validation_confusion_matrix.png`: validation predictions for the selected alpha.
+- `test_confusion_matrix.png`: test predictions for the selected alpha.
 
-```powershell
-.\.venv\Scripts\python.exe scripts/difficulty_model.py
-```
+Rows in both charts are actual ratings; columns are predicted ratings. Running the script recreates the model and overwrites these output files. It does not save a model binary or regenerate embeddings.
 
-This command repeats the fixed evaluation and overwrites the result files. Preserve this results folder before starting any later experiment. No trained model binary is saved; rerunning reconstructs the model from the recorded input and settings. Keep a copy of the final chunking notebook with the team, since the earlier notebook supplied for inspection did not yet contain the chunking functions.
+The installed mord/SciPy combination emits a warning about an unsupported `disp` display option. The model run completes; this warning is kept visible. The saved numerical results were verified against the earlier selected-version evaluation.
 
-The installed `mord`/SciPy combination emits `OptimizeWarning: Unknown solver options: disp`. The run completed and reproduced the reported validation scores. This warning concerns an unrecognized display option; it is retained rather than silently suppressed.
-
-## Team handoff draft
-
-Annie's current modeling implementation and results are ready for review. The current chunked-embedding model selects alpha 0.5, with validation MAE 0.7418 and test MAE 0.7433. The 0.65 goal was not met. Both confusion matrices and a median-rating baseline are saved. Please update the shared methods to document the finer alpha grid, January-header cleaning, and chunk averaging, and include the limitation that the original test result was viewed before further development. Chunking provided only a tiny validation improvement. This is the current completed version, not a claim that the team has approved the method changes.
-
-## Data handling
-
-No data or messages were uploaded or sent during this completion. NPZ files are now ignored for future Git additions. However, `data/embeddings_split.npz` was already tracked by Git when this work began; adding an ignore rule does not remove it from tracking or history. Keep the repository private as agreed and resolve any public-release data handling with the team. No Git history or staging changes were made here.
+The cleaned embedding file is retained locally but removed from Git tracking. An embedding file existed in earlier Git history; the cleanup does not rewrite history.
