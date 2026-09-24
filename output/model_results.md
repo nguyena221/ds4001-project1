@@ -27,14 +27,21 @@ Run `python scripts/difficulty_model.py` using the project's virtual environment
 
 Private input: `data/embeddings_cleaned_new.npz` (cleaned, non-chunked export). Its expected SHA-256 is `61ab35c0d538d52dabefa8eb6956eb2677ec3c4830e1a1b1d525862e599cd0e2`. Use the current embeddings shared through the private team repository. Each row of review numbers must stay matched with its actual rating. The raw review data and derived embeddings should remain private.
 
-Outputs in this folder:
+### What each output file contains
 
-- `alpha_validation.csv`: the validation MAE for each alpha, without rounding the saved values.
-- `metrics.json`: exact scores, the simple comparison model, input file details, package versions, and confusion-matrix counts.
-- `validation_confusion_matrix.png`: validation predictions for the selected alpha.
-- `test_confusion_matrix.png`: test predictions for the selected alpha.
+| File | What it shows or saves |
+|---|---|
+| `alpha_validation.csv` | The validation MAE for each alpha we tried. This shows how we chose the setting with the lowest validation error. The saved scores are not rounded. |
+| `difficulty_rating_distribution.png` | The number of reviews at each difficulty rating from 1 to 5. This shows which ratings are more common in the original dataset. |
+| `hours_by_difficulty.png` | The average reported hours per week for each difficulty rating. This helps describe the dataset; hours are not used as an input to our prediction model. |
+| `metrics.json` | The exact model scores, selected alpha, group sizes, comparison with always guessing the middle training rating, and confusion-matrix counts. It also records package versions and the input file identifier so we can check what was used for the run. |
+| `model_results.md` | This report. It explains our method, findings, limitations, and the files in this folder. Update it manually if the results change. |
+| `test_confusion_matrix.png` | The selected model's predictions compared with the actual test ratings. It shows which ratings were predicted correctly and where the model made mistakes. |
+| `validation_confusion_matrix.png` | The selected model's predictions compared with the actual validation ratings. It shows the mistakes made on the group used to compare alpha settings. |
 
-Rows in both charts are actual ratings; columns are predicted ratings. Running the script recreates the model and overwrites these output files. It does not save the trained model itself or create the embeddings again.
+In both confusion matrices, rows show actual ratings and columns show predicted ratings. Numbers on the diagonal count the exact matches.
+
+Running `scripts/difficulty_model.py` updates `alpha_validation.csv`, `metrics.json`, and both confusion matrices. Running `scripts/describe_review_data.py` updates the difficulty-rating and weekly-hours plots. Neither script updates this written report. The modeling script does not save the trained model itself or create the embeddings again.
 
 The model packages print a warning about the `disp` display option. The run still finishes, and we confirmed that the scores match the earlier run of this model.
 
