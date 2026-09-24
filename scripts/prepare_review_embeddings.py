@@ -106,7 +106,7 @@ def main():
     root = Path(__file__).resolve().parents[1]
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", type=Path, default=root / "data/thecourseforum_all_reviews (1).csv")
-    parser.add_argument("--output", type=Path, default=root / "data/embeddings_split.npz")
+    parser.add_argument("--output", type=Path, default=root / "data/embeddings_cleaned_new.npz")
     parser.add_argument("--check-only", action="store_true", help="Check cleaning and splits without generating embeddings")
     parser.add_argument("--overwrite", action="store_true", help="Explicitly replace an existing embedding export")
     args = parser.parse_args()

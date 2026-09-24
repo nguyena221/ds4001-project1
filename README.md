@@ -8,17 +8,23 @@ We first remove leftover webpage information from the reviews. Then we use MiniL
 
 ## Repository contents
 
-This repository contains the collection code, review preparation code, prediction model, and saved results. The sections below explain the software, where files belong, and how to reproduce the analysis.
+This repository contains the code and results for predicting a student's course difficulty rating from their written review. It includes the original data collection script, the steps used to clean and prepare the reviews, the LogisticIT model, and the graphs and scores used to explain our findings.
 
-## Software and platform
+The `scripts` folder contains the Python files and preparation notebook. The preparation code cleans the reviews, separates them into training, validation, and test groups, and uses MiniLM to turn the text into numbers. The modeling script uses those numbers to train LogisticIT, compare alpha settings, and check its predictions. A separate plotting script creates the two graphs that describe the original dataset. The original scraper is kept as a record of how we collected the reviews; it is not needed to run the analysis again.
+
+The `data` folder contains the current embeddings and a README explaining the dataset, its columns, and how it can be used. The raw review CSV needs to be obtained separately and placed in this folder before preparing the reviews or creating the data plots. The `output` folder contains the saved model scores, alpha comparison, data plots, confusion matrices, and written results report.
+
+To get started, Section 1 explains the software and packages needed, Section 2 shows where each file belongs, and Section 3 walks through running the project. If you want to review the findings first, open [the results summary](output/results_summary.txt) or [the detailed results report](output/model_results.md).
+
+## Section 1: Software and platform
 
 We used Python 3.14.7 on Windows with PowerShell and VS Code for the model results below. We originally prepared the reviews in Google Colab, and the Python scripts now let us prepare the data and run the model on our own computers.
 
-The model uses NumPy, SciPy, scikit-learn, mord, and Matplotlib. Their tested versions are listed in `requirements-model.txt` and `output/metrics.json`. Preparing the reviews also uses pandas and sentence-transformers, listed in `requirements-embeddings.txt`. The original scraper uses Selenium, webdriver-manager, and Google Chrome. It is kept as a record of how the data was collected; do not run it again under the team's current agreement with theCourseForum.
+The model uses NumPy, SciPy, scikit-learn, mord, and Matplotlib. Their tested versions are listed in `requirements-model.txt` and `output/metrics.json`. Preparing the reviews also uses pandas and sentence-transformers, listed in `requirements-embeddings.txt`. The original scraper uses Selenium, webdriver-manager, and Google Chrome. It is kept as a record of the original collection and is not part of the steps below. Use the saved dataset to repeat the analysis.
 
 The preparation package list does not specify exact versions, and we did not record the versions originally used in Colab. Because of this, creating embeddings on another computer may give slightly different numbers. An internet connection is needed to install the packages and download MiniLM the first time.
 
-## Documentation map
+## Section 2: Documentation map
 
 ```text
 ds4001-project1/
@@ -47,21 +53,21 @@ ds4001-project1/
     `-- test_confusion_matrix.png          Test predictions versus ratings
 ```
 
-The `.gitignore` file excludes the raw `thecourseforum_all_reviews*.csv` files, the Python environment, and local backups. The embeddings and data documentation can be committed to the private repository for the team. Get the raw CSV separately from the team. Changing `.gitignore` does not upload files; new files become available to teammates after they are committed and pushed.
+The `.gitignore` file excludes the raw `thecourseforum_all_reviews*.csv` files, the Python environment, and local backups. The current embeddings and data documentation are included in the repository. Request the raw CSV separately from the team. See [the data README](data/README.md#license-and-access) for data permissions and sharing details.
 
-## Instructions for reproducing the results
+## Section 3: Instructions for reproducing the results
 
 ### Step 1: Get the repository and original dataset
 
 Download or clone this repository, open its folder in VS Code, and open a PowerShell terminal in that folder. All commands below start from the project folder.
 
-Get the original dataset from the team's shared folder. Create a folder named `data` if it does not exist, and put the file there with this exact name:
+Request the original dataset directly from the team. Create a folder named `data` if it does not exist, and put the file there with this exact name:
 
 ```text
 data/thecourseforum_all_reviews (1).csv
 ```
 
-We will share the raw CSV directly and privately with our professor. It is not included in the repository. The professor can request the file from our team and place it in `data/` using the filename above. Any sharing with classmates needs to be confirmed separately. See [the data README](data/README.md) for the permission conditions.
+We will share the raw CSV directly and privately with our professor. It is not included in the repository. After receiving it, place it in `data/` using the filename above. Read [the data README](data/README.md) for the data permissions and ethical statements.
 
 Use the same dataset and row order. Collecting new reviews, sorting rows, or dropping reviews can change the split and results.
 
@@ -142,18 +148,18 @@ To recreate the two dataset plots described in [the data README](data/README.md)
 ```
 
 
-Open `output/results_summary.txt` for a short summary or `output/model_results.md` for more detail about what we found. Our results are:
+Open [the results summary](output/results_summary.txt) to check the scores from your run. The expected results for the current embeddings are:
 
 | Metric | Validation | Test |
 |---|---:|---:|
 | Mean absolute error | 0.7433 | 0.7461 |
 | Exact-match accuracy | 39.6% | 39.0% |
 
-The best alpha based on validation results was **0.3**. In the test group, the model predicted **275 of 705 ratings exactly**. For comparison, always guessing the middle training rating of 3 gave a test MAE of **0.9191**. Our model did better than that simple guess, but **did not meet the goal of 0.65 or lower**.
+The expected selected alpha is **0.3**. See [the model results report](output/model_results.md) for the detailed findings, comparison with a simple baseline, and whether the project goal was met.
 
 The confusion matrices show where the predictions were right or wrong. Rows show the actual ratings, and columns show the predicted ratings. `output/alpha_validation.csv` lists the score for each alpha we tried. `output/metrics.json` stores the exact scores, package versions, and a file identifier called a SHA-256 hash, which helps us check whether we used the same input file.
 
-We looked at test results during earlier experiments, before settling on this version. Because of that, the test group was not completely unseen throughout the project. This is a limitation we need to include when discussing our results.
+Read [the methods and evaluation limitations](output/model_results.md#methods-and-evaluation-limitations) before interpreting or presenting these scores.
 
 ## References
 
