@@ -1,11 +1,11 @@
 """prepare cleaned, non-chunked MiniLM embeddings using Zilan's split procedure."""
 
-# these tools handle local paths, command-line options, and removal of scraped text.
+# these help us find the files, choose how to run the script, and clean up the scraped text.
 import argparse
 from pathlib import Path
 import re
 
-# pandas reads the csv; numpy saves arrays; scikit-learn separates the review groups.
+# pandas opens our data file, numpy saves the review numbers, and scikit-learn splits up the reviews.
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -13,13 +13,13 @@ from sklearn.model_selection import train_test_split
 
 def clean_review(text):
     """remove the same webpage headers and footers as the selected notebook version."""
-    # the January option is the accepted correction; keep the rest of the rule unchanged.
-    # this removes a term, year, and displayed average rating before the student's writing.
+    # remove the webpage stuff before the actual review, like the term, year, and average rating.
+    # january was getting missed before, so it's included here too.
     text = re.sub(
         r'^(Fall|Spring|Summer|Winter|January)\s+\d{4}\s+\d+(?:\.\d+)?\s+AVERAGE\s*',
         '', text, flags=re.IGNORECASE
     )
-    # this removes a trailing vote count and date, not sentences within the review.
+    # remove the vote count and posting date at the end. leave the student's writing in between.
     text = re.sub(
         r'\s+-?\d+\s+'
         r'(?:Jan\.?|Feb\.?|Mar\.?|Apr\.?|May|Jun\.?|Jul\.?|Aug\.?|'
@@ -37,8 +37,8 @@ def prepare_splits(csv_path):
     required = {"review_text", "difficulty_rating"}
     if not required.issubset(reviews.columns):
         raise ValueError("The CSV must contain review_text and difficulty_rating.")
-    # fail on unexpected data instead of silently dropping rows and changing the saved split.
-    # the selected dataset has no missing review texts or difficulty ratings.
+    # stop if something is missing instead of quietly dropping reviews and changing our split.
+    # our current dataset has all the review texts and difficulty ratings, so this should pass.
     if reviews[list(required)].isna().any().any():
         raise ValueError("Missing reviews or ratings: resolve these before reproducing the split.")
     if not reviews["review_text"].map(lambda text: isinstance(text, str)).all():
@@ -46,20 +46,21 @@ def prepare_splits(csv_path):
     if not reviews["difficulty_rating"].isin([1, 2, 3, 4, 5]).all():
         raise ValueError("Difficulty ratings must be whole numbers from 1 to 5.")
 
-    # apply one definitive cleaning function, rather than cleaning twice with different rules.
-    # no extra lowercase, punctuation, or markdown transformations are added to this selected version.
+    # clean the reviews once with the rule above. the original notebook had two versions of this.
+    # we're not adding new changes to capitalization, punctuation, or markdown in this version.
     reviews["cleaned_review"] = reviews["review_text"].apply(clean_review)
     if reviews["cleaned_review"].eq("").any():
         raise ValueError("Cleaning produced an empty review; inspect the input first.")
     X = reviews["cleaned_review"]
     y = reviews["difficulty_rating"]
 
-    # reserve 30% temporarily, leaving 70% for training.
-    # stratify preserves approximate rating proportions; 42 makes the selection repeatable.
+    # put 70 percent of the reviews into the training group and leave 30 percent aside for now.
+    # keep a similar mix of difficulty ratings in each group.
+    # using the same random seed of 42 repeats the split when the data and row order stay the same.
     X_train, X_temp, y_train, y_temp = train_test_split(
         X, y, test_size=0.30, stratify=y, random_state=42
     )
-    # divide the remaining 30% into equal validation and test groups (15% each overall).
+    # split the remaining reviews in half, giving us 15 percent for validation and 15 percent for testing.
     X_val, X_test, y_val, y_test = train_test_split(
         X_temp, y_temp, test_size=0.50, stratify=y_temp, random_state=42
     )
@@ -74,23 +75,24 @@ def prepare_splits(csv_path):
 
 def save_embeddings(splits, output_path):
     """use the pretrained model to encode whole reviews, then save the six model inputs."""
-    # import the large language-model package only when we actually need embeddings.
-    # the check-only option can therefore inspect cleaning and splits without downloading MiniLM.
+    # only load this package when we're ready to make the embeddings.
+    # that way, check-only can check the cleaning and splits without downloading minilm.
     from sentence_transformers import SentenceTransformer
 
-    # this uses MiniLM's existing knowledge; it does not train or fine-tune MiniLM.
+    # minilm is already trained. we're using it to turn our reviews into numbers, not training it again.
     model = SentenceTransformer("all-MiniLM-L6-v2")
     arrays = {}
     for name, (texts, labels) in splits.items():
-        # use the same direct encode call for all three groups; there is no chunking here.
-        # long reviews are truncated according to the model's default input limit.
+        # process the training, validation, and test reviews the same way.
+        # we're keeping each review together instead of splitting it into smaller pieces.
+        # this means minilm still cuts off text that goes past its normal length limit.
         features = model.encode(texts.tolist(), show_progress_bar=True)
         if features.shape != (len(labels), 384) or not np.isfinite(features).all():
             raise ValueError(f"Unexpected embedding shape or values for {name}.")
         arrays[f"X_{name}"] = features
         arrays[f"y_{name}"] = labels.to_numpy()
         print(f"{name} embeddings: {features.shape}; labels: {labels.shape}")
-    # keep row order intact: the nth embedding belongs to the nth rating in the same split.
+    # keep the order the same so the first review's numbers go with the first rating, and so on.
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(output_path, **arrays)
@@ -98,7 +100,7 @@ def save_embeddings(splits, output_path):
 
 
 def main():
-    # paths default to this project's data folder, even when launched from another directory.
+    # look in our project's data folder by default, even if the terminal is somewhere else.
     root = Path(__file__).resolve().parents[1]
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", type=Path, default=root / "data/thecourseforum_all_reviews (1).csv")
@@ -106,7 +108,7 @@ def main():
     parser.add_argument("--check-only", action="store_true", help="Check cleaning and splits without generating embeddings")
     parser.add_argument("--overwrite", action="store_true", help="Explicitly replace an existing embedding export")
     args = parser.parse_args()
-    # preserve the selected model's current input unless replacement is explicitly requested.
+    # don't accidentally replace the embeddings we're already using. overwriting has to be intentional.
     if not args.check_only and args.output.exists() and not args.overwrite:
         parser.error("Output already exists. Choose --output with a new name, or use --overwrite intentionally.")
     if not args.check_only and args.output.suffix.lower() != ".npz":
@@ -116,6 +118,6 @@ def main():
         save_embeddings(splits, args.output)
 
 
-# importing this file makes its functions available; running it starts the local preparation steps.
+# start the steps when we run this file, but not when another script just imports its functions.
 if __name__ == "__main__":
     main()
