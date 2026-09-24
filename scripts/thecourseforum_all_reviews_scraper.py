@@ -1,8 +1,8 @@
-# this is the original collection script, kept to show how we obtained the reviews.
-# do not rerun it: our agreement with thecourseforum does not allow further scraping.
+# This is the original collection script, kept to show how we obtained the reviews.
+# Do not rerun it: our agreement with thecourseforum does not allow further scraping.
 
-# input: live course and instructor pages, plus any saved progress file.
-# output: the original review csv, a progress file, and a log of the collection.
+# Input: live course and instructor pages, plus any saved progress file.
+# Output: the original review csv, a progress file, and a log of the collection.
 
 """
 thecourseforum_all_reviews_scraper.py
@@ -88,6 +88,7 @@ class Config:
     max_departments: int
 
 
+# Save collection messages to the terminal and a log file so problems can be traced.
 def setup_logging(log_file: str) -> None:
     logging.basicConfig(
         level=logging.INFO,
@@ -96,7 +97,7 @@ def setup_logging(log_file: str) -> None:
     )
 
 
-# open the browser used for the original collection and apply its settings.
+# Open the browser used for the original collection and apply its settings.
 def build_driver(config: Config) -> webdriver.Chrome:
     options = Options()
     if config.headless:
@@ -119,15 +120,17 @@ def build_driver(config: Config) -> webdriver.Chrome:
     return driver
 
 
-# leave a short pause between requests during the original collection.
+# Leave a short pause between requests during the original collection.
 def sleep_polite(config: Config) -> None:
     time.sleep(random.uniform(config.min_delay, config.max_delay))
 
 
+# Replace repeated whitespace with single spaces to make page text easier to compare.
 def normalize_space(text: str) -> str:
     return " ".join((text or "").split())
 
 
+# Use visible text when available, then try the element's text content as a fallback.
 def safe_text(elem) -> str:
     text = (elem.text or "").strip()
     if text:
@@ -135,6 +138,7 @@ def safe_text(elem) -> str:
     return (elem.get_attribute("textContent") or "").strip()
 
 
+# Write column names when creating the output file, without replacing an existing file.
 def ensure_output_header(path: str) -> None:
     if not os.path.exists(path):
         with open(path, "w", newline="", encoding="utf-8") as f:
@@ -142,7 +146,7 @@ def ensure_output_header(path: str) -> None:
             writer.writeheader()
 
 
-# add newly collected reviews to the output file using the same column order.
+# Add newly collected reviews to the output file using the same column order.
 def append_rows(path: str, rows: List[Dict[str, object]]) -> None:
     if not rows:
         return
@@ -152,7 +156,7 @@ def append_rows(path: str, rows: List[Dict[str, object]]) -> None:
             writer.writerow(row)
 
 
-# read saved progress so an interrupted collection could resume.
+# Read saved progress so an interrupted collection could resume.
 def load_checkpoint(path: str) -> Dict[str, object]:
     if not os.path.exists(path):
         return {
@@ -170,24 +174,27 @@ def load_checkpoint(path: str) -> Dict[str, object]:
     return data
 
 
+# Save completed pages and review identifiers so progress is not lost after an interruption.
 def save_checkpoint(path: str, checkpoint: Dict[str, object]) -> None:
     checkpoint["updated_at"] = datetime.now(UTC).isoformat()
     with open(path, "w", encoding="utf-8") as f:
         json.dump(checkpoint, f, indent=2)
 
 
+# Recognize a lost browser session so collection can stop with its progress saved.
 def is_invalid_session_error(exc: BaseException) -> bool:
     if isinstance(exc, InvalidSessionIdException):
         return True
     return "invalid session id" in str(exc).lower()
 
 
-# create a repeatable review identifier to help avoid saving the same record twice.
+# Create a repeatable review identifier to help avoid saving the same record twice.
 def hash_review_key(*parts: str) -> str:
     payload = "|".join(parts).encode("utf-8", errors="ignore")
     return hashlib.md5(payload).hexdigest()
 
 
+# Read a number that appears after a rating label, returning no value if it cannot be read.
 def extract_metric_after_label(text: str, label: str) -> Optional[float]:
     m = re.search(rf"{label}\s*[:\-]?\s*([0-9]+(?:\.[0-9]+)?)", text, re.IGNORECASE)
     if not m:
@@ -198,6 +205,7 @@ def extract_metric_after_label(text: str, label: str) -> Optional[float]:
         return None
 
 
+# Check the alternate layout where the number comes before its rating label.
 def extract_metric_before_label(text: str, label: str) -> Optional[float]:
     m = re.search(rf"([0-9]+(?:\.[0-9]+)?)\s*{label}", text, re.IGNORECASE)
     if not m:
@@ -208,7 +216,7 @@ def extract_metric_before_label(text: str, label: str) -> Optional[float]:
         return None
 
 
-# look for a rating before or after its label because page layouts can differ.
+# Look for a rating before or after its label because page layouts can differ.
 def extract_metric_flexible(text: str, label: str) -> Optional[float]:
     value = extract_metric_after_label(text, label)
     if value is not None:
@@ -216,11 +224,13 @@ def extract_metric_flexible(text: str, label: str) -> Optional[float]:
     return extract_metric_before_label(text, label)
 
 
+# Find the term and year in the collected page text.
 def parse_semester(text: str) -> str:
     m = re.search(r"\b(Fall|Spring|Summer|Winter|January)\s+20\d{2}\b", text)
     return m.group(0) if m else ""
 
 
+# Find a written posting date using the month names supported by this pattern.
 def parse_date(text: str) -> str:
     m = re.search(
         r"\b(Jan(?:uary|\.)?|Feb(?:ruary|\.)?|Mar(?:ch|\.)?|Apr(?:il|\.)?|May|"
@@ -231,6 +241,7 @@ def parse_date(text: str) -> str:
     return m.group(0) if m else ""
 
 
+# Separate the course code and title from the page heading when they are available.
 def parse_course_meta(header_text: str) -> Tuple[str, str]:
     code = ""
     title = ""
@@ -251,7 +262,7 @@ def parse_course_meta(header_text: str) -> Tuple[str, str]:
     return code, title
 
 
-# find department links, which were the starting points for collection.
+# Find department links, which were the starting points for collection.
 def collect_departments(driver: webdriver.Chrome, wait: WebDriverWait, max_departments: int) -> List[Dict[str, str]]:
     driver.get(BROWSE_URL)
     wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "a.department-card")))
@@ -272,7 +283,7 @@ def collect_departments(driver: webdriver.Chrome, wait: WebDriverWait, max_depar
     return departments
 
 
-# find each course within a department and skip repeated links.
+# Find each course within a department and skip repeated links.
 def collect_courses(driver: webdriver.Chrome, dept_url: str) -> List[Dict[str, str]]:
     driver.get(dept_url)
 
@@ -300,7 +311,7 @@ def collect_courses(driver: webdriver.Chrome, dept_url: str) -> List[Dict[str, s
     return courses
 
 
-# find the instructor pages connected to each course.
+# Find the instructor pages connected to each course.
 def collect_offerings(driver: webdriver.Chrome, course_url: str) -> List[Dict[str, str]]:
     driver.get(course_url)
 
@@ -333,7 +344,7 @@ def collect_offerings(driver: webdriver.Chrome, course_url: str) -> List[Dict[st
     return offerings
 
 
-# look for page sections that contain reviews using several possible layouts.
+# Look for page sections that contain reviews using several possible layouts.
 def possible_review_blocks(driver: webdriver.Chrome) -> Iterable[Tuple[str, Optional[str]]]:
     selectors = [
         "[data-testid*='review']",
@@ -355,7 +366,7 @@ def possible_review_blocks(driver: webdriver.Chrome) -> Iterable[Tuple[str, Opti
             if text_norm in seen_texts:
                 continue
 
-            # skip page navigation and other sections that do not look like reviews.
+            # Skip page navigation and other sections that do not look like reviews.
             has_metric_token = any(k in text for k in ["Difficulty", "Instructor", "Enjoyability", "Recommend"]) 
             has_time_token = bool(parse_date(text) or parse_semester(text))
             if not (has_metric_token or has_time_token):
@@ -370,7 +381,7 @@ def possible_review_blocks(driver: webdriver.Chrome) -> Iterable[Tuple[str, Opti
             yield text, link
 
 
-# pull the review text, ratings, and course details into one row.
+# Pull the review text, ratings, and course details into one row.
 def parse_review_blob(
     blob_text: str,
     review_url: Optional[str],
@@ -404,7 +415,7 @@ def parse_review_blob(
         except ValueError:
             upvotes = 0
 
-    # keep the written review while removing some rating information at the end.
+    # Keep the written review while removing some rating information at the end.
     review_text = re.sub(
         r"(Instructor|Enjoyability|Recommend|Difficulty|Hours/Week|Total Hours)\s*[0-9\.\-\+—NAnan/ ]+",
         "",
@@ -413,7 +424,7 @@ def parse_review_blob(
     )
     review_text = normalize_space(review_text)
 
-    # use the available review details to create a repeatable identifier.
+    # Use the available review details to create a repeatable identifier.
     review_id = hash_review_key(
         review_url or "",
         course_code or "",
@@ -422,7 +433,7 @@ def parse_review_blob(
         review_text[:180],
     )
 
-    # keep rows only when they contain enough information to look like a review.
+    # Keep rows only when they contain enough information to look like a review.
     if not any(v is not None for v in [overall_rating, difficulty_rating, instructor_rating, enjoyability_rating]) and len(review_text) < 60:
         return None
 
@@ -448,7 +459,7 @@ def parse_review_blob(
     }
 
 
-# read the review pages for one offering and skip records already collected.
+# Read the review pages for one offering and skip records already collected.
 def scrape_offering_reviews(
     driver: webdriver.Chrome,
     offering: Dict[str, str],
@@ -471,7 +482,7 @@ def scrape_offering_reviews(
             logging.warning("Timeout loading %s", source_url)
             break
 
-        # check the possible review sections found on this page.
+        # Check the possible review sections found on this page.
         page_candidates = list(possible_review_blocks(driver))
         if not page_candidates:
             break
@@ -498,7 +509,7 @@ def scrape_offering_reviews(
 
         logging.info("Offering %s page %d: +%d reviews", offering_url, page, page_new)
 
-        # stop when the page has no button or link for more reviews.
+        # Stop when the page has no button or link for more reviews.
         next_links = driver.find_elements(
             By.XPATH,
             "//a[contains(translate(., 'NEXT', 'next'),'next') and not(contains(@class,'disabled'))]",
@@ -509,6 +520,7 @@ def scrape_offering_reviews(
     return rows
 
 
+# Read the original collection settings, including file locations, delays, and page limits.
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Scrape all reachable theCourseForum reviews")
     parser.add_argument("--output", default="thecourseforum_all_reviews.csv", help="Output CSV path")
@@ -524,7 +536,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-# follow departments, courses, and offerings, saving reviews and progress along the way.
+# Follow departments, courses, and offerings, saving reviews and progress along the way.
 def main() -> None:
     args = parse_args()
     config = Config(
@@ -543,6 +555,7 @@ def main() -> None:
     setup_logging(config.log_file)
     ensure_output_header(config.output_csv)
 
+    # Restore the last saved position and the reviews already collected.
     checkpoint = load_checkpoint(config.checkpoint_json)
     completed_offerings: Set[str] = set(checkpoint.get("completed_offerings", []))
     seen_review_ids: Set[str] = set(checkpoint.get("seen_review_ids", []))
@@ -633,6 +646,7 @@ def main() -> None:
                         seen_review_ids=seen_review_ids,
                     )
 
+                    # Append new reviews before marking this offering as finished.
                     if rows:
                         append_rows(config.output_csv, rows)
                         total_written += len(rows)
@@ -657,6 +671,7 @@ def main() -> None:
         logging.info("Crawl complete. New rows written this run: %d", total_written)
         logging.info("Total known unique review IDs in checkpoint: %d", len(seen_review_ids))
 
+    # Close the browser even if the original collection ended with an error.
     finally:
         if driver is not None:
             driver.quit()

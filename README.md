@@ -14,7 +14,7 @@ The `scripts` folder contains the Python files and preparation notebook. The pre
 
 The `data` folder contains the current embeddings and a README explaining the dataset, its columns, and how it can be used. The raw review CSV needs to be obtained separately and placed in this folder before preparing the reviews or creating the data plots. The `output` folder contains the saved model scores, alpha comparison, data plots, confusion matrices, and written results report.
 
-To get started, Section 1 explains the software and packages needed, Section 2 shows where each file belongs, and Section 3 walks through running the project. If you want to review the findings first, open [the results summary](output/results_summary.txt) or [the detailed results report](output/model_results.md).
+To get started, Section 1 explains the software and packages needed, Section 2 shows where each file belongs, and Section 3 walks through running the project. If you want to review the findings first, open [the model results report](output/model_results.md).
 
 ## Section 1: Software and platform
 
@@ -45,7 +45,6 @@ ds4001-project1/
 `-- output/
     |-- difficulty_rating_distribution.png Review counts by rating
     |-- hours_by_difficulty.png             Average reported hours by rating
-    |-- results_summary.txt                Short summary of the results
     |-- model_results.md                   Methods, findings, and limitations
     |-- metrics.json                       Exact scores and details about the input file
     |-- alpha_validation.csv               Validation scores for each alpha
@@ -53,7 +52,7 @@ ds4001-project1/
     `-- test_confusion_matrix.png          Test predictions versus ratings
 ```
 
-The `.gitignore` file excludes the raw `thecourseforum_all_reviews*.csv` files, the Python environment, and local backups. The current embeddings and data documentation are included in the repository. Request the raw CSV separately from the team. See [the data README](data/README.md#license-and-access) for data permissions and sharing details.
+The `.gitignore` file excludes the raw `thecourseforum_all_reviews*.csv` files, the Python environment, and local backups. The current embeddings and data documentation are included in the repository. Request the raw CSV separately from the team. See [the data README](data/README.md#license) for data permissions and sharing details.
 
 ## Section 3: Instructions for reproducing the results
 
@@ -148,7 +147,7 @@ To recreate the two dataset plots described in [the data README](data/README.md)
 ```
 
 
-Open [the results summary](output/results_summary.txt) to check the scores from your run. The expected results for the current embeddings are:
+Check the terminal summary or `output/metrics.json` for the scores from your run. Read [the model results report](output/model_results.md) for the written explanation. The expected results for the current embeddings are:
 
 | Metric | Validation | Test |
 |---|---:|---:|

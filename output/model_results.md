@@ -6,6 +6,8 @@ We used `all-MiniLM-L6-v2` to turn the cleaned reviews into numbers and `mord.Lo
 
 ## Results for the report
 
+Mean absolute error (MAE) tells us how many rating points our predictions are off by on average. Lower is better. Accuracy is the percentage of ratings we predicted exactly.
+
 We compared alpha values of 0.03, 0.05, 0.1, 0.2, 0.3, 0.5, 1.0, 2.0, and 3.0 using validation Mean Absolute Error (MAE). Alpha 0.3 achieved the lowest validation MAE, 0.7433. We then checked the same model on the test group without training it on the validation ratings. It had a test MAE of 0.7461 and exact-match accuracy of 39.0% (275 of 705 reviews). Always predicting the training median rating of 3 had test MAE 0.9191. The model improved on that baseline but did not meet the target test MAE of 0.65 or lower.
 
 The test confusion matrix shows that the model had more trouble with ratings 1 and 5. The model correctly predicted 11 of 73 reviews rated 1 and 9 of 77 reviews rated 5. Most reviews rated 1 were predicted as 2 (40 reviews), while most reviews rated 5 were predicted as 4 (51 reviews). The model predicted all five ratings, but most of its predictions were 2, 3, or 4.
