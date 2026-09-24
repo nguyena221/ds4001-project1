@@ -86,6 +86,18 @@ Install the modeling and preparation packages into that environment:
 
 These commands use the project's Python environment directly, so you do not need to activate it first. If the installation fails, fix that error before moving on.
 
+If you use the notebook in VS Code, install its kernel support and select this project's `.venv` as the notebook kernel:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install ipykernel
+```
+
+The saved scraper also imports Selenium and webdriver-manager. These are not needed for the preparation or model scripts. To resolve missing-import warnings when reviewing the scraper, install them with the command below. Installing the packages does not collect data; do not run the scraper again.
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install selenium webdriver-manager
+```
+
 ### Step 3: Check the data and split
 
 ```powershell

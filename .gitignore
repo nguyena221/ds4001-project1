@@ -217,11 +217,8 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-# Generated output
-out.csv
-
-# keep the raw courseforum reviews private, including numbered download copies.
+# Keep the raw CourseForum CSV private, including numbered download copies.
 thecourseforum_all_reviews*.csv
 
-# local copies of imported working files; not part of the final pipeline
+# Keep old working files and datasets out of the repository.
 .local_backups/
