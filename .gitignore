@@ -220,12 +220,8 @@ __marimo__/
 # Generated output
 out.csv
 
-# Exclude datasets
-*.csv
-*.npz
-
-# allow only the aggregate alpha scores, not review datasets
-!output/alpha_validation.csv
+# keep the raw courseforum reviews private, including numbered download copies.
+thecourseforum_all_reviews*.csv
 
 # local copies of imported working files; not part of the final pipeline
 .local_backups/
