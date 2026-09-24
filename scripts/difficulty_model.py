@@ -14,6 +14,7 @@ from sklearn.metrics import mean_absolute_error, confusion_matrix, ConfusionMatr
 
 # load the newly cleaned review numbers from our data folder.
 root = Path(__file__).resolve().parents[1]
+# change this path if the embeddings are saved under a different name or folder.
 input_path = root / "data/embeddings_cleaned_new.npz"
 output_dir = root / "output"
 output_dir.mkdir(parents=True, exist_ok=True)

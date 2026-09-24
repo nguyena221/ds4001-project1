@@ -30,7 +30,7 @@ ds4001-project1/
 |   |-- thecourseforum_all_reviews_scraper.py   Original data collection script
 |   |-- describe_review_data.py                Recreate the two data plots
 |   |-- prepare_review_embeddings.py           Clean, split, and turn reviews into numbers
-|   |-- review_preprocessing.ipynb             Team's Colab preparation notebook
+|   |-- review_preprocessing.ipynb             Local preparation notebook
 |   `-- difficulty_model.py                    Train, select, and evaluate LogisticIT
 |-- data/                                  Data documentation and model inputs
 |   |-- README.md                              Data source, columns, and quality notes
@@ -47,7 +47,7 @@ ds4001-project1/
     `-- test_confusion_matrix.png          Test predictions versus ratings
 ```
 
-The `.gitignore` file excludes the raw `thecourseforum_all_reviews*.csv` files, the Python environment, and local backups. The embeddings and data documentation can be committed to the private repository for the team. The raw CSV must still be obtained separately. Changing `.gitignore` does not upload files; new files become available to teammates after they are committed and pushed.
+The `.gitignore` file excludes the raw `thecourseforum_all_reviews*.csv` files, the Python environment, and local backups. The embeddings and data documentation can be committed to the private repository for the team. Get the raw CSV separately from the team. Changing `.gitignore` does not upload files; new files become available to teammates after they are committed and pushed.
 
 ## Instructions for reproducing the results
 
@@ -61,7 +61,7 @@ Get the original dataset from the team's shared folder. Create a folder named `d
 data/thecourseforum_all_reviews (1).csv
 ```
 
-**Still needed before submission:** add the approved access instructions for the professor. Our project overview records permission to share the data with the team and professor, not automatically with classmates. Confirm any broader access before sharing. See [the data README](data/README.md) for the permission conditions.
+**Still needed before submission:** add the approved access instructions for the professor. Our permission covers sharing with the team and professor. We need to check before sharing with classmates. See [the data README](data/README.md) for the permission conditions.
 
 Use the same dataset and row order. Collecting new reviews, sorting rows, or dropping reviews can change the split and results.
 
@@ -111,7 +111,15 @@ If this file already exists, the script stops so it does not replace it by accid
 .\.venv\Scripts\python.exe scripts/prepare_review_embeddings.py --overwrite
 ```
 
-You only need to run the Python preparation script for these steps. We also kept the notebook for team members who use Colab.
+You only need to run the Python preparation script for these steps. The notebook now supports the same local workflow in VS Code, using files in the data folder.
+
+If you save embeddings under a different filename or in a different folder, update `input_path` near the top of `scripts/difficulty_model.py` to match. For example, `data/embeddings_updated.npz` needs:
+
+```python
+input_path = root / "data/embeddings_updated.npz"
+```
+
+If you keep the same filename and folder, you do not need to change the code. After replacing the file or switching to a different one, run the difficulty model again to update the scores and graphs. Update the written results in the READMEs and `output/model_results.md` if the scores change.
 
 ### Step 5: Train and evaluate the difficulty model
 
@@ -119,7 +127,7 @@ You only need to run the Python preparation script for these steps. We also kept
 .\.venv\Scripts\python.exe scripts/difficulty_model.py
 ```
 
-The script loads `data/embeddings_cleaned_new.npz`, trains LogisticIT on the training group, and compares alpha values of 0.03, 0.05, 0.1, 0.2, 0.3, 0.5, 1.0, 2.0, and 3.0. Alpha controls the penalty applied to large model weights during training.
+The script loads `data/embeddings_cleaned_new.npz`, trains LogisticIT on the training group, and compares alpha values of 0.03, 0.05, 0.1, 0.2, 0.3, 0.5, 1.0, 2.0, and 3.0. Alpha controls how strongly the model is penalized for using large weights during training. A larger alpha means a stronger penalty.
 
 The script keeps the model with the lowest validation MAE and checks its predictions on the test group. The validation and test ratings are used to check predictions, not to train the model. Each run trains the model again and updates the scores and graphs in `output/`. It does not save the trained model itself. The written report, `output/model_results.md`, needs to be updated separately if the results change.
 

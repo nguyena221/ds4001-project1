@@ -14,17 +14,17 @@ The original file is `thecourseforum_all_reviews (1).csv`. Keep its rows in thei
 
 ## License and access
 
-Our project overview [1] records that theCourseForum gave permission to use the data already collected for this academic project. The conditions were to keep the raw data off public GitHub, not try to identify reviewers, and not continue scraping the website. Any additional data should be requested directly from theCourseForum.
+As explained in our project overview [1], theCourseForum gave us permission to use the data we had already collected for this class project. The conditions were to keep the raw data off public GitHub, not try to identify reviewers, and not continue scraping the website. Any additional data should be requested directly from theCourseForum.
 
-The dataset is not covered by our code's MIT license. The raw review CSV is excluded from new Git commits. The embeddings may be committed to the private team repository; they contain numerical review representations and ratings rather than the written reviews. They should still be treated as project data, not as permission to publish the underlying reviews. The documented sharing arrangement covers our team and professor; it does not establish permission to share the data with other groups.
+The dataset is not covered by our code's MIT license. The raw review CSV is excluded from new Git commits. We can keep the embeddings in our private team repository. These contain the numbers used to represent the reviews and their ratings, rather than the written reviews. This does not give us permission to publish the original reviews. Our permission covers the team and professor, so we need to check before sharing the data with other groups.
 
-**Before submission:** the team still needs to provide the professor with the approved shared-folder link or access instructions. A link is not included here because it has not been provided. Any classmate access needed for reproduction must be confirmed first.
+**Before submission:** the team still needs to provide the professor with the approved shared-folder link or access instructions. We still need to add that link or those instructions here. We also need to check whether classmates can receive access before sharing with them.
 
 ## Ethical statements
 
-We use this data to study whether review text can predict a student's difficulty rating. We do not try to identify reviewers or use their writing to work out who they are. The dataset has no dedicated student-name or email columns, but review text may still contain personal details, so we keep the text private. Instructor names are present in the original data but are not used as a separate model input.
+We use this data to study whether review text can predict a student's difficulty rating. We do not try to identify reviewers or use their writing to work out who they are. The dataset does not have columns for student names or emails, but review text may still contain personal details, so we keep the text private. Instructor names are present in the original data but are not used as a separate model input.
 
-Ratings reflect student opinions, not an objective measure of course difficulty. Students choose whether to post reviews, so these reviews may not represent every student's experience. Our plots show group-level counts and averages without quoting individual reviews.
+Ratings reflect student opinions, not an objective measure of course difficulty. Students choose whether to post reviews, so these reviews may not represent every student's experience. Our plots show totals and averages, without quoting individual reviews.
 
 ## Files and preparation
 
@@ -44,11 +44,19 @@ The raw CSV is not included when you clone the repository. If you already have `
 | `embeddings_cleaned_new.npz` | Review embeddings and matching ratings for the three groups; allowed in the private team repository |
 | `README.md` | This documentation; can be included in GitHub |
 
-`scripts/prepare_review_embeddings.py` removes the matched webpage heading with the term, year, and average rating, plus the vote count and date at the end of the review. It keeps the student's text between them. The current code does not add separate lowercase conversion or HTML/Markdown removal. Unlike the original plan to drop missing rows, it stops if a required value is missing; none are missing in the current dataset.
+`scripts/prepare_review_embeddings.py` removes the matched webpage heading with the term, year, and average rating, plus the vote count and date at the end of the review. It keeps the student's text between them. The current code does not add separate lowercase conversion or HTML/Markdown removal. We originally planned to remove rows with missing reviews or ratings. The current script stops and asks us to check them instead. Neither column has missing values in this dataset.
 
 The script uses two splits with `random_state=42`, keeping a similar mix of ratings in each group. It produces 3,289 training reviews, 705 validation reviews, and 705 test reviews. MiniLM turns each cleaned review into 384 numbers without splitting long reviews into chunks. Text beyond the model's length limit is cut off.
 
 The saved file contains `X_train`, `X_val`, and `X_test`, which hold the review numbers, and `y_train`, `y_val`, and `y_test`, which hold the actual ratings. Each row must stay matched with its rating. The shapes are `(3289, 384)`, `(705, 384)`, and `(705, 384)` for the embeddings, with one rating per row.
+
+If you save embeddings under a different filename or in a different folder, update `input_path` near the top of `scripts/difficulty_model.py` to match. For example, `data/embeddings_updated.npz` needs:
+
+```python
+input_path = root / "data/embeddings_updated.npz"
+```
+
+If you keep the same filename and folder, you do not need to change the code. After replacing the file or switching to a different one, run the difficulty model again to update the scores and graphs. Update the written results in the READMEs and `output/model_results.md` if the scores change.
 
 ## Data dictionary
 
@@ -75,7 +83,7 @@ The types below describe the contents. The CSV itself stores text, and Python co
 | `source_url` | Text | Page where the review was collected; none missing. |
 | `scraped_at` | Timestamp stored as text | Time the scraper collected the review, including the UTC time zone; none missing. |
 
-There are 4,698 distinct raw review texts across 4,699 rows, so one text is repeated. A repeated text is not enough to establish that two rows are the same review. We have not removed it or changed the current split; possible overlap is a data-quality limitation to check before future analysis.
+There are 4,698 different review texts across 4,699 rows, so one text appears twice. Matching text alone does not tell us whether those rows are the same review. We kept both rows in the current split. Before doing more analysis, we should check whether this creates overlap between the groups.
 
 ## Explanatory plots
 
@@ -91,7 +99,7 @@ Ratings are not equally common. There are 484 reviews rated 1, 1,113 rated 2, 1,
 
 ![Average reported weekly hours at each difficulty rating](../output/hours_by_difficulty.png)
 
-Average reported hours increase across the rating groups: about 2.4, 3.3, 4.2, 5.6, and 8.9 hours for ratings 1 through 5. This describes an association in the reviews, not proof that additional hours cause higher difficulty ratings. Hours are not used to train our model because our question focuses on predicting ratings from written reviews.
+Average reported hours increase across the rating groups: about 2.4, 3.3, 4.2, 5.6, and 8.9 hours for ratings 1 through 5. The two measures increase together in this dataset, but that does not prove that spending more hours causes a higher difficulty rating. Hours are not used to train our model because our question focuses on predicting ratings from written reviews.
 
 ## References
 
