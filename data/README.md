@@ -18,7 +18,7 @@ As explained in our project overview [1], theCourseForum gave us permission to u
 
 The dataset is not covered by our code's MIT license. The raw review CSV is excluded from new Git commits. We can keep the embeddings in our private team repository. These contain the numbers used to represent the reviews and their ratings, rather than the written reviews. This does not give us permission to publish the original reviews. Our permission covers the team and professor, so we need to check before sharing the data with other groups.
 
-**Before submission:** the team still needs to provide the professor with the approved shared-folder link or access instructions. We still need to add that link or those instructions here. We also need to check whether classmates can receive access before sharing with them.
+We will share the raw CSV directly and privately with our professor. The professor can request it from our team, then place it in the `data` folder as explained below. There is no public download link. We need to confirm permission before sharing with classmates.
 
 ## Ethical statements
 

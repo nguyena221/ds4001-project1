@@ -2,9 +2,9 @@
 
 DS 4002 Project 1 | EAZ
 
-Our project uses student reviews to predict the difficulty rating that each student gave. The goal is a test mean absolute error (MAE) of 0.65 or lower on the 1-to-5 rating scale. MAE measures how many rating points our predictions are off by on average.
+Our project uses student reviews from theCourseForum [1] to predict the difficulty rating that each student gave. The goal is a test mean absolute error (MAE) of 0.65 or lower on the 1-to-5 rating scale. MAE measures how many rating points our predictions are off by on average [5].
 
-We first remove leftover webpage information from the reviews. Then we use MiniLM, an already trained model, to turn each review into 384 numbers called an embedding. LogisticIT learns from those numbers and the actual ratings to predict difficulty. We do not train MiniLM again or split long reviews into smaller pieces. Any text beyond MiniLM's length limit is cut off.
+We first remove leftover webpage information from the reviews. Then we use MiniLM, an already trained model, to turn each review into 384 numbers called an embedding [2]. LogisticIT learns from those numbers and the actual ratings to predict difficulty [3]. We do not train MiniLM again or split long reviews into smaller pieces. Any text beyond MiniLM's length limit is cut off.
 
 ## Repository contents
 
@@ -61,7 +61,7 @@ Get the original dataset from the team's shared folder. Create a folder named `d
 data/thecourseforum_all_reviews (1).csv
 ```
 
-**Still needed before submission:** add the approved access instructions for the professor. Our permission covers sharing with the team and professor. We need to check before sharing with classmates. See [the data README](data/README.md) for the permission conditions.
+We will share the raw CSV directly and privately with our professor. It is not included in the repository. The professor can request the file from our team and place it in `data/` using the filename above. Any sharing with classmates needs to be confirmed separately. See [the data README](data/README.md) for the permission conditions.
 
 Use the same dataset and row order. Collecting new reviews, sorting rows, or dropping reviews can change the split and results.
 
@@ -95,7 +95,7 @@ This checks that every review has text and a valid difficulty rating. It also re
 | Validation | 705 | Choose the alpha setting |
 | Test | 705 | Evaluate the selected model |
 
-We put 70 percent of the reviews in training, 15 percent in validation, and 15 percent in testing. Each group has a similar mix of difficulty ratings. Using `random_state=42` repeats the same split as long as the dataset and row order stay the same.
+We put 70 percent of the reviews in training, 15 percent in validation, and 15 percent in testing. Each group has a similar mix of difficulty ratings. Using `random_state=42` repeats the same split as long as the dataset and row order stay the same [4].
 
 ### Step 4: Generate the cleaned embeddings
 
@@ -154,3 +154,15 @@ The best alpha based on validation results was **0.3**. In the test group, the m
 The confusion matrices show where the predictions were right or wrong. Rows show the actual ratings, and columns show the predicted ratings. `output/alpha_validation.csv` lists the score for each alpha we tried. `output/metrics.json` stores the exact scores, package versions, and a file identifier called a SHA-256 hash, which helps us check whether we used the same input file.
 
 We looked at test results during earlier experiments, before settling on this version. Because of that, the test group was not completely unseen throughout the project. This is a limitation we need to include when discussing our results.
+
+## References
+
+[1] theCourseForum, "theCourseForum." Accessed: Sep. 23, 2026. [Online]. Available: https://thecourseforum.com/
+
+[2] Sentence Transformers, "sentence-transformers/all-MiniLM-L6-v2," Hugging Face. Accessed: Sep. 23, 2026. [Online]. Available: https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
+
+[3] F. Pedregosa, "mord: Ordinal Regression in Python," mord documentation. Accessed: Sep. 23, 2026. [Online]. Available: https://pythonhosted.org/mord/
+
+[4] Scikit-learn developers, "train_test_split," scikit-learn documentation. Accessed: Sep. 23, 2026. [Online]. Available: https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html
+
+[5] Scikit-learn developers, "mean_absolute_error," scikit-learn documentation. Accessed: Sep. 23, 2026. [Online]. Available: https://scikit-learn.org/stable/modules/generated/sklearn.metrics.mean_absolute_error.html
