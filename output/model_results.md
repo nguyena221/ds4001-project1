@@ -23,7 +23,7 @@ The test confusion matrix shows difficulty identifying extreme ratings. The mode
 
 Run `python scripts/difficulty_model.py` using the project's virtual environment. Tested package versions are listed in `requirements-model.txt`; the recorded Python version is 3.14.7.
 
-Private input: `data/embeddings_split.npz` (cleaned, non-chunked export). Its expected SHA-256 is `3d9bc9d492fc6d3397c63b82d63e4a714bbc51f10659a9fc5e60c4e3649b7030`. Obtain it through the restricted team sharing process. Each embedding row must match the rating in the same position. The raw review data and derived embeddings should remain private.
+Private input: `data/embeddings_cleaned_new.npz` (cleaned, non-chunked export). Its expected SHA-256 is `61ab35c0d538d52dabefa8eb6956eb2677ec3c4830e1a1b1d525862e599cd0e2`. Obtain it through the restricted team sharing process. Each embedding row must match the rating in the same position. The raw review data and derived embeddings should remain private.
 
 Outputs in this folder:
 

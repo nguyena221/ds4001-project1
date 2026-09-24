@@ -1,8 +1,8 @@
 {
   "model": "LogisticIT",
   "input_version": "cleaned text without chunking",
-  "input_file": "embeddings_split.npz",
-  "input_sha256": "3d9bc9d492fc6d3397c63b82d63e4a714bbc51f10659a9fc5e60c4e3649b7030",
+  "input_file": "embeddings_cleaned_new.npz",
+  "input_sha256": "61ab35c0d538d52dabefa8eb6956eb2677ec3c4830e1a1b1d525862e599cd0e2",
   "selected_alpha": 0.3,
   "validation_mae": 0.7432624113475177,
   "validation_accuracy": 0.39574468085106385,

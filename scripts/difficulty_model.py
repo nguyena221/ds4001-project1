@@ -1,5 +1,3 @@
-# these help us find our files, save the results, and keep track of package versions.
-# the file hash lets us check later that we're using the same input file.
 from pathlib import Path
 import csv
 import hashlib
@@ -7,29 +5,20 @@ import json
 import platform
 from importlib.metadata import version
 
-# numpy handles our tables of review numbers and actual ratings.
 import numpy as np
 import matplotlib
-# save the graphs without opening a window we have to close before the code can finish.
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-# logisticit is the model we're using to predict difficulty. we're just loading the tool here.
-# the other tools check how far off our guesses are and show the mistakes in a graph.
 from mord import LogisticIT
 from sklearn.metrics import mean_absolute_error, confusion_matrix, ConfusionMatrixDisplay
 
-# find the project folder so these paths still work if our terminal is somewhere else.
-# load the cleaned version from colab, without chunking. minilm already made these numbers.
+# load the newly cleaned review numbers from our data folder.
 root = Path(__file__).resolve().parents[1]
-input_path = root / "data/embeddings_split.npz"
+input_path = root / "data/embeddings_cleaned_new.npz"
 output_dir = root / "output"
 output_dir.mkdir(parents=True, exist_ok=True)
 
-# open the file we downloaded from colab and pull out the three groups.
-# each review is represented by 384 numbers. those numbers aren't ratings or individual words.
-# the actual difficulty ratings are kept separately, so we have an answer key to compare against.
-# the training group teaches the model, the validation group helps us pick settings,
-# and the test group lets us check how the chosen model performs.
+# each review has 384 numbers describing it, plus its actual difficulty rating.
 with np.load(input_path, allow_pickle=False) as data:
     X_train = data["X_train"]
     X_val = data["X_val"]
@@ -39,8 +28,7 @@ with np.load(input_path, allow_pickle=False) as data:
     y_val = data["y_val"]
     y_test = data["y_test"]
 
-# check that we have 384 numbers per review and one rating to go with each review.
-# the rows also need to stay in the same order from colab so we don't mix up the answers.
+# check that every review has 384 valid numbers and one matching rating.
 for features, labels in ((X_train, y_train), (X_val, y_val), (X_test, y_test)):
     if features.ndim != 2 or features.shape[1] != 384:
         raise ValueError("Expected 384 embedding features per review.")
@@ -48,70 +36,52 @@ for features, labels in ((X_train, y_train), (X_val, y_val), (X_test, y_test)):
         raise ValueError("Each embedding must have one matching label.")
     if not np.isfinite(features).all():
         raise ValueError("Embeddings contain non-finite values.")
-# check first so something wrong like 2.5 doesn't just get turned into 2 without us noticing.
 for labels in (y_train, y_val, y_test):
     if not np.isin(labels, [1, 2, 3, 4, 5]).all():
         raise ValueError("Ratings must be whole numbers from 1 to 5.")
 
-# the model needs ratings written as whole numbers, so we change values like 3.0 into 3.
-# we're not changing anyone's rating, just how python stores it. leave the review numbers alone.
+# change ratings like 3.0 into whole numbers without changing their values.
 y_train = y_train.astype(int)
 y_val = y_val.astype(int)
 y_test = y_test.astype(int)
 
-# print the sizes to make sure everything loaded the way we expected.
-# a shape of (3289, 384) means we have 3289 reviews with 384 numbers describing each one.
-print("Training:", X_train.shape, y_train.shape)
-print("Validation:", X_val.shape, y_val.shape)
-print("Test:", X_test.shape, y_test.shape)
+print("COURSE DIFFICULTY PREDICTION | LogisticIT")
+print("Cleaned review text | MiniLM embeddings | 384 features per review")
+print(f"Reviews: {len(y_train):,} training | {len(y_val):,} validation | {len(y_test):,} test")
+print("\nAlpha comparison (selected using validation results only)")
+print(f"{'Alpha':>8} {'Validation MAE':>18}")
+print("-" * 27)
 
-# try these alpha settings and see which gives us the lowest validation error.
-# alpha controls how much training penalizes large model weights. a bigger alpha means a stronger penalty.
-# it's not one of the weights, so alpha 0.5 does not mean multiply all the review numbers by 50%.
+# try different alpha settings and choose using validation error.
 alphas = [0.03, 0.05, 0.1, 0.2, 0.3, 0.5, 1.0, 2.0, 3.0]
 
-# start with infinity so the first result can beat it. after that, keep looking for a lower error.
-# we haven't picked a model yet, and we'll use the empty list to save each alpha's result.
+# alpha controls the penalty on large weights. a bigger alpha means a stronger penalty.
 best_mae = float("inf")
 best_alpha = None
 best_model = None
 tuning_results = []
 
 for alpha in alphas:
-    # start a fresh model for each alpha and give it the training reviews plus their real ratings.
-    # during training, the model figures out the 384 weights and the cutoffs between ratings.
-    # we don't choose those weights ourselves.
-    # each training review counts equally here. we're not giving rare ratings extra importance.
+    # teach each model using the training reviews and their actual ratings.
     difficulty_model = LogisticIT(alpha=alpha)
     difficulty_model.fit(X_train, y_train)
 
-    # let the model guess the validation ratings without giving it the answers.
-    # then compare with the real ratings. guessing 4 when the answer is 2 means we're off by 2.
-    # mean absolute error is the average of those distances. lower is better.
-    # this tells us how far off the predictions are, not the percentage we got right.
+    # compare guesses with real ratings. mean absolute error is how far off we are on average.
     val_predictions = difficulty_model.predict(X_val)
     val_mae = mean_absolute_error(y_val, val_predictions)
     tuning_results.append({"alpha": alpha, "validation_mae": float(val_mae)})
 
-    print(f"Alpha: {alpha} | Validation MAE: {val_mae:.4f}")
+    print(f"{alpha:>8.2f} {val_mae:>18.4f}")
 
-    # if this one has a lower validation error, save it as our best model so far.
-    # if it's a tie, keep the first one. we're not using test scores to pick alpha here.
+    # keep the model with the lowest validation error.
     if val_mae < best_mae:
         best_mae = val_mae
         best_alpha = alpha
         best_model = difficulty_model
 
-print(f"\nBest alpha: {best_alpha}")
-print(f"Best validation MAE: {best_mae:.4f}")
-
-# use the best model for the graph, not just whichever alpha happened to run last.
 best_val_predictions = best_model.predict(X_val)
 
-# make a graph of the guesses versus the real answers.
-# the rows show the actual ratings, and the columns show the predicted ratings.
-# numbers on the diagonal are the ones we got right. the other boxes show our mistakes.
-# show all five ratings, even if the model didn't guess one of them at all.
+# graph our best model. rows are actual ratings and columns are predicted ratings.
 ConfusionMatrixDisplay.from_predictions(
     y_val,
     best_val_predictions,
@@ -125,14 +95,10 @@ ConfusionMatrixDisplay.from_predictions(
 plt.title(f"Validation Confusion Matrix — Alpha {best_alpha}")
 plt.tight_layout()
 
-# save the graph in output, then close it so it doesn't hang around in memory.
-# running this again replaces the old graph with the new one.
 plt.savefig(output_dir / "validation_confusion_matrix.png", dpi=200)
 plt.close()
 
-# now check our chosen model on the test reviews. don't train it on the test answers.
-# this checks the model we already picked; it isn't another round of choosing alpha.
-# we did look at test results during earlier experiments, so we need to mention that in the report.
+# check the chosen model on the test group without training on its answers.
 test_predictions = best_model.predict(X_test)
 test_mae = mean_absolute_error(y_test, test_predictions)
 ConfusionMatrixDisplay.from_predictions(
@@ -144,13 +110,9 @@ plt.tight_layout()
 plt.savefig(output_dir / "test_confusion_matrix.png", dpi=200)
 plt.close()
 
-# compare against a super simple guess: always predict the middle training rating, which is 3 here.
-# this helps us see whether reading the reviews actually beats just guessing the same rating every time.
+# compare our model with always guessing the middle training rating.
 baseline_rating = int(np.median(y_train))
-# put the results in one place so we don't have to copy everything out of the terminal.
-# accuracy tells us how often we were exactly right.
-# mean absolute error tells us how far off we were on average.
-# save the file hash and package versions too so we can tell what we used for this run.
+# save the scores and details so we know which data and settings produced these results.
 metrics = {
     "model": "LogisticIT",
     "input_version": "cleaned text without chunking",
@@ -176,14 +138,26 @@ metrics = {
     "versions": {name: version(name) for name in ["numpy", "scikit-learn", "mord", "scipy", "matplotlib"]},
     "python_version": platform.python_version(),
 }
-# save the main results in a structured file and the alpha comparison in a table we can open later.
-# these are just our scores and counts, not the students' written reviews.
 (output_dir / "metrics.json").write_text(json.dumps(metrics, indent=2) + "\n", encoding="utf-8")
 with (output_dir / "alpha_validation.csv").open("w", newline="", encoding="utf-8") as handle:
     writer = csv.DictWriter(handle, fieldnames=["alpha", "validation_mae"])
     writer.writeheader()
     writer.writerows(tuning_results)
-print(f"Test MAE: {test_mae:.4f}; goal met: {test_mae <= 0.65}")
-print(f"Results saved to {output_dir}")
-
-# if we try something else later, keep these results and compare new settings using validation data.
+summary = (
+    "SELECTED MODEL RESULTS\n"
+    f"Selected alpha: {best_alpha}\n"
+    f"Validation mean absolute error: {best_mae:.4f}\n"
+    f"Test mean absolute error:       {test_mae:.4f}\n"
+    f"Test exact-match accuracy:      {metrics['test_accuracy']:.1%} "
+    f"({metrics['correct_test_predictions']} of {len(y_test)} reviews)\n"
+    f"Baseline test error (always predict {baseline_rating}): {metrics['test_baseline_mae']:.4f}\n"
+    f"Target: mean absolute error of {metrics['goal_mae']:.2f} or lower | "
+    f"{'Met' if metrics['goal_met'] else 'Not met'}\n\n"
+    "Mean absolute error measures the average distance from the actual rating; lower is better.\n"
+    "Accuracy measures the percentage of ratings predicted exactly.\n"
+    "Evaluation note: test results were inspected during earlier experiments,\n"
+    "so this is not a wholly untouched final evaluation.\n"
+)
+print("\n" + summary)
+(output_dir / "results_summary.txt").write_text(summary, encoding="utf-8")
+print("Results saved in output/ (summary, metrics, alpha comparison, and confusion matrices).")
