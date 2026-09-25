@@ -2,9 +2,19 @@
 
 DS 4002 Project 1 | EAZ
 
+**Section:** 001
+
+**Team members:** Zilan Saadi (group leader), Eli Boyden, and Annie Nguyen
+
+**Research question:** Based on what a student writes in their review on theCourseForum, can we predict the difficulty rating from 1 to 5 that they gave the course?
+
 Our project uses student reviews from theCourseForum [1] to predict the difficulty rating that each student gave. The goal is a test mean absolute error (MAE) of 0.65 or lower on the 1-to-5 rating scale. MAE measures how many rating points our predictions are off by on average [5].
 
 We first remove leftover webpage information from the reviews. Then we use MiniLM, an already trained model, to turn each review into 384 numbers called an embedding [2]. LogisticIT learns from those numbers and the actual ratings to predict difficulty [3]. We do not train MiniLM again or split long reviews into smaller pieces. Any text beyond MiniLM's length limit is cut off.
+
+The dataset contains 4,699 reviews and 18 columns, covering 56 departments, 425 course codes, and 452 instructor names. Our project overview records collection on September 15-16, 2026. These are the dates we gathered the reviews, not the dates students took the courses. The reviews cover Fall, Spring, Summer, and January terms. See [the data README](data/README.md) for collection details and term counts.
+
+Only the cleaned review text is converted into model inputs. We do not supply reported hours, instructor identity, other ratings, or course metadata as separate features. A student may still mention an instructor or workload in the written review itself.
 
 ## Repository contents
 
@@ -24,11 +34,16 @@ The model uses NumPy, SciPy, scikit-learn, mord, and Matplotlib. Their tested ve
 
 The preparation package list does not specify exact versions, and we did not record the versions originally used in Colab. Because of this, creating embeddings on another computer may give slightly different numbers. An internet connection is needed to install the packages and download MiniLM the first time.
 
+NumPy stores and handles the embedding arrays, while pandas loads and prepares the review data. Scikit-learn creates the data splits and calculates evaluation scores. Sentence-transformers runs MiniLM to generate embeddings, and mord provides LogisticIT. SciPy handles the numerical optimization used during model training. Matplotlib creates the saved plots and confusion matrices.
+
+For the optional notebook workflow, ipykernel connects the notebook to the project's Python environment. In the original collection code, Selenium controls the Chrome browser and webdriver-manager manages its driver. Those collection tools are not needed to reproduce the model results, and the scraper should not be run again.
+
 ## Section 2: Documentation map
 
 ```text
 ds4001-project1/
 |-- README.md                              Project overview and run instructions
+|-- .gitignore                             Rules excluding private raw data and local files
 |-- LICENSE.md                             MIT license for the code
 |-- requirements-model.txt                 Tested modeling package versions
 |-- requirements-embeddings.txt            Packages for preparing embeddings

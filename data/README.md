@@ -4,13 +4,17 @@
 
 Our dataset contains 4,699 student reviews from theCourseForum. Each row is one collected review. There are 18 columns covering the written review, ratings, course details, and collection information. The file includes 56 departments, 425 course codes, and 452 instructor names.
 
-Our model uses the cleaned `review_text` to predict `difficulty_rating`, which ranges from 1 to 5. Other rating columns, instructor names, and reported hours are not separate inputs to the model. Both required columns have no missing values.
+Our model uses the cleaned `review_text` to predict `difficulty_rating`, which ranges from 1 to 5. Other rating columns, instructor names, and reported hours are not separate inputs to the model. There are no missing values in either `review_text` or `difficulty_rating` across the 4,699 reviews. This does not mean every other column is complete; missing values are described in the data dictionary below.
 
 ## Provenance
 
 The team collected reviews directly from theCourseForum's course and instructor pages using `scripts/thecourseforum_all_reviews_scraper.py`. Our project overview [1] records collection on September 15 and 16, 2026. The saved `scraped_at` timestamps are in UTC and range from September 16, 2026, at 01:53 to 23:55; collection dates can differ by time zone. The `source_url` column records the page used for each review.
 
 The original file is `thecourseforum_all_reviews (1).csv`. Keep its rows in their original order so the same split can be repeated. The scraper is kept to document collection, not to collect more reviews.
+
+Collection dates describe when we gathered the data, while `semester_taken` describes the term associated with each review. The dataset includes 3,387 Fall reviews, 1,228 Spring reviews, 72 Summer reviews, and 12 January reviews. It is not limited to January classes, and the terms are not equally represented.
+
+January appears in our cleaning code because it is one of the term names that can appear in a scraped webpage heading. Adding it to the cleaning rule removes that heading from January reviews too; it does not select only January reviews or remove those reviews from the dataset.
 
 ## License
 
