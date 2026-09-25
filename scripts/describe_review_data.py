@@ -1,3 +1,5 @@
+# Major component: Data collection and preprocessing: dataset summaries and plots.
+
 # Summarize the original dataset and save the two plots used in the data readme.
 # Run this from the project environment; it does not change the data or train a model.
 

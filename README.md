@@ -6,6 +6,16 @@ DS 4002 Project 1 | EAZ
 
 **Team members:** Zilan Saadi (group leader), Eli Boyden, and Annie Nguyen
 
+### Team responsibilities
+
+| Major component | Responsibility | Responsible member |
+|---|---|---|
+| Data collection and preprocessing | Collect reviews, check for missing values, and clean review text. | Eli Boyden |
+| Feature preparation and data splitting | Create the stratified 70/15/15 split and generate MiniLM embeddings. | Zilan Saadi (group leader) |
+| Model training and evaluation | Train LogisticIT, compare alpha settings, and evaluate predictions using MAE and confusion matrices. | Annie Nguyen |
+
+The preparation script and notebook cover both preprocessing and feature preparation, so their component labels overlap.
+
 **Research question:** Based on what a student writes in their review on theCourseForum, can we predict the difficulty rating from 1 to 5 that they gave the course?
 
 Our project uses student reviews from theCourseForum [1] to predict the difficulty rating that each student gave. The goal is a test mean absolute error (MAE) of 0.65 or lower on the 1-to-5 rating scale. MAE measures how many rating points our predictions are off by on average [5].
@@ -23,6 +33,54 @@ This repository contains the code and results for predicting a student's course 
 The `scripts` folder contains the Python files and preparation notebook. The preparation code cleans the reviews, separates them into training, validation, and test groups, and uses MiniLM to turn the text into numbers. The modeling script uses those numbers to train LogisticIT, compare alpha settings, and check its predictions. A separate plotting script creates the two graphs that describe the original dataset. The original scraper is kept as a record of how we collected the reviews; it is not needed to run the analysis again.
 
 The `data` folder contains the current embeddings and a README explaining the dataset, its columns, and how it can be used. The raw review CSV needs to be obtained separately and placed in this folder before preparing the reviews or creating the data plots. The `output` folder contains the saved model scores, alpha comparison, data plots, confusion matrices, and written results report.
+
+The project folder is organized as follows. The raw CSV is shown where it belongs after you receive it privately; it is not included in GitHub.
+
+```text
+ds4001-project1/
+│
+├── README.md
+├── .gitignore
+├── LICENSE.md
+├── requirements-model.txt
+├── requirements-embeddings.txt
+│
+├── scripts/
+│   ├── thecourseforum_all_reviews_scraper.py
+│   ├── describe_review_data.py
+│   ├── prepare_review_embeddings.py
+│   ├── review_preprocessing.ipynb
+│   └── difficulty_model.py
+│
+├── data/
+│   ├── README.md
+│   ├── thecourseforum_all_reviews (1).csv   (private; not tracked)
+│   └── embeddings_cleaned_new.npz
+│
+└── output/
+    ├── difficulty_rating_distribution.png
+    ├── hours_by_difficulty.png
+    ├── results_summary.txt
+    ├── model_results.md
+    ├── metrics.json
+    ├── alpha_validation.csv
+    ├── validation_confusion_matrix.png
+    └── test_confusion_matrix.png
+```
+
+### Notes on script components
+
+| Script | Major component |
+|---|---|
+| `thecourseforum_all_reviews_scraper.py` | Data collection and preprocessing (original collection; do not rerun). |
+| `describe_review_data.py` | Data collection and preprocessing (dataset summaries and plots). |
+| `prepare_review_embeddings.py` | Data collection and preprocessing; feature preparation and data splitting. |
+| `review_preprocessing.ipynb` | The same preparation components, using a notebook instead of the Python script. |
+| `difficulty_model.py` | Model training and evaluation. |
+
+These labels describe what the files do; they are not additional folders. The preparation files cover more than one component.
+
+Section 2 adds a description of each file. Local environment files, Git's internal files, caches, and private backups are omitted from these maps.
 
 To get started, Section 1 explains the software and packages needed, Section 2 shows where each file belongs, and Section 3 walks through running the project. If you want to review the findings first, open [the model results report](output/model_results.md).
 
@@ -61,6 +119,7 @@ ds4001-project1/
     |-- difficulty_rating_distribution.png Review counts by rating
     |-- hours_by_difficulty.png             Average reported hours by rating
     |-- model_results.md                   Methods, findings, and limitations
+    |-- results_summary.txt                Short text summary of the selected model scores
     |-- metrics.json                       Exact scores and details about the input file
     |-- alpha_validation.csv               Validation scores for each alpha
     |-- validation_confusion_matrix.png    Validation predictions versus ratings

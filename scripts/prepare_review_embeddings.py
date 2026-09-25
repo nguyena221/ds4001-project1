@@ -1,3 +1,5 @@
+# Major component: Data collection and preprocessing; Feature preparation and data splitting.
+
 # Clean the review text, split the reviews into three groups, and create MiniLM embeddings.
 # These embeddings are the numbers our difficulty model uses to learn from the reviews.
 

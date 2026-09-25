@@ -1,3 +1,5 @@
+# Major component: Data collection and preprocessing.
+
 # This is the original collection script, kept to show how we obtained the reviews.
 # Do not rerun it: our agreement with thecourseforum does not allow further scraping.
 

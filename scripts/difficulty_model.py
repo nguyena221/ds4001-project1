@@ -1,3 +1,5 @@
+# Major component: Model training and evaluation.
+
 # Train and compare LogisticIT models using the cleaned review embeddings.
 # Choose alpha using validation error, then check the selected model on the test group.
 
