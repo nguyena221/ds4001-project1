@@ -88,7 +88,7 @@ To get started, Section 1 explains the software and packages needed, Section 2 s
 
 We used Python 3.14.7 on Windows with PowerShell and VS Code for the model results below. We originally prepared the reviews in Google Colab, and the Python scripts now let us prepare the data and run the model on our own computers.
 
-The model uses NumPy, SciPy, scikit-learn, mord, and Matplotlib. Their tested versions are listed in `requirements-model.txt` and `output/metrics.json`. Preparing the reviews also uses pandas and sentence-transformers, listed in `requirements-embeddings.txt`. The original scraper uses Selenium, webdriver-manager, and Google Chrome. It is kept as a record of the original collection and is not part of the steps below. Use the saved dataset to repeat the analysis.
+The model uses **NumPy 2.5.3**, **SciPy 1.18.1**, **scikit-learn 1.9.1**, **mord 0.7**, and **Matplotlib 3.11.2**. These are the package versions recorded for our reported model results in `output/metrics.json` and pinned in `requirements-model.txt`. Preparing the reviews also uses pandas and sentence-transformers, listed in `requirements-embeddings.txt`. The original scraper uses Selenium, webdriver-manager, and Google Chrome. It is kept as a record of the original collection and is not part of the steps below. Use the saved dataset to repeat the analysis.
 
 The preparation package list does not specify exact versions, and we did not record the versions originally used in Colab. Because of this, creating embeddings on another computer may give slightly different numbers. An internet connection is needed to install the packages and download MiniLM the first time.
 
